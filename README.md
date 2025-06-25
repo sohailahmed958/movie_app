@@ -43,31 +43,24 @@ This app integrates with [The Movie Database (TMDb)](https://www.themoviedb.org/
 
 ---
 
-## 📂 Folder Structure
+## 📁 Project Structure (Clean Architecture)
 
+```text
 lib/
 ├── core/
 │   ├── constants/
 │   ├── errors/
 │   ├── network/
 │   ├── theme/
-│   └── utils/
-|   ├── widgets/
+│   ├── utils/
+│   └── widgets/
 ├── features/
 │   ├── movie/
 │   │   ├── data/
-│   │   │   ├── datasources/
-│   │   │   ├── models/
-│   │   │   └── repositories/
 │   │   ├── domain/
-│   │   │   ├── entities/
-│   │   │   ├── repositories/
-│   │   │   └── usecases/
 │   │   └── presentation/
-│   │       ├── providers/
-│   │       ├── pages/
-│   │       └── widgets/
 │   ├── search/
 │   └── ticket/
-└── injection_container.dart
+├── injection_container.dart
 └── main.dart
+

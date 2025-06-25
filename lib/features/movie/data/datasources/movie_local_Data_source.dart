@@ -1,10 +1,10 @@
 
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:movies_app/features/movie/data/models/movie_model.dart'; // Ensure Movie is imported
-import 'dart:convert'; // For JSON encoding/decoding
+import 'package:movies_app/features/movie/data/models/movie_model.dart';
+import 'dart:convert';
 
-import '../../../../core/errors/exceptions.dart'; // Import for CacheException
+import '../../../../core/errors/exceptions.dart';
 
 abstract class MovieLocalDataSource {
   Future<void> cacheMovies(List<Movie> movies);
@@ -36,7 +36,7 @@ class MovieLocalDataSourceImpl implements MovieLocalDataSource {
         final List<dynamic> jsonList = json.decode(jsonString);
         return jsonList.map((json) => Movie.fromJson(json)).toList();
       } else {
-        return []; // No cached movies found
+        return [];
       }
     } catch (e) {
       throw CacheException('Failed to get cached movies: $e');

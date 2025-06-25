@@ -24,23 +24,19 @@ import 'core/theme/theme_provider.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // External Dependencies
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
   sl.registerLazySingleton<Dio>(() => Dio());
-  // Fix: Use InternetConnectionChecker.instance to get the singleton instance
   sl.registerLazySingleton<InternetConnectionChecker>(
     () => InternetConnectionChecker.instance,
   );
 
-  // Core Components
   sl.registerLazySingleton<DioClient>(
     () => DioClient(dio: sl(), baseUrl: AppConstants.tmdbBaseUrl),
   );
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  // Feature: Movie
-  // Data Sources
+
   sl.registerLazySingleton<MovieLocalDataSource>(
     () => MovieLocalDataSourceImpl(sharedPreferences: sl()),
   );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:movies_app/core/constants/app_constants.dart';
-import 'package:movies_app/core/widgets/cached_image.dart'; // Import CachedImage
+import 'package:movies_app/core/widgets/cached_image.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../data/models/movie_model.dart';
 import '../pages/movie_detail_page.dart';
 
@@ -12,19 +14,21 @@ class MoviesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding), // Use constant for padding
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // Two columns
-        childAspectRatio: 0.7, // Aspect ratio for each movie card
-        crossAxisSpacing: AppConstants.defaultPadding, // Spacing between columns
-        mainAxisSpacing: AppConstants.defaultPadding, // Spacing between rows
+      padding: EdgeInsets.symmetric(
+        horizontal: AppConstants.defaultPadding.w,
+        vertical: AppConstants.defaultPadding.h,
+      ),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5,
+        crossAxisSpacing: 8.w,
+        mainAxisSpacing: 8.h,
       ),
       itemCount: movies.length,
       itemBuilder: (context, index) {
         final movie = movies[index];
         return GestureDetector(
           onTap: () {
-            // Navigate to movie detail page on tap
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -32,33 +36,53 @@ class MoviesGrid extends StatelessWidget {
               ),
             );
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius), // Use constant for rounded corners
-                  child: CachedImage( // Use the CachedImage widget for efficient image loading
-                    imageUrl: '${AppConstants.tmdbImageBaseUrl}/${AppConstants.imageSizeW500}${movie.posterPath}',
-                    fit: BoxFit.cover,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            child: ClipRRect( // Clip the Stack's content to the rounded corners
+              borderRadius: BorderRadius.circular(8.r),
+              child: Stack(
+                children: [
+                  CachedImage(
+                    imageUrl: movie.posterPath != null && movie.posterPath!.isNotEmpty
+                        ? '${AppConstants.tmdbImageBaseUrl}/${AppConstants.imageSizeW500}${movie.posterPath}'
+                        : '',
+                    height: 100.h,
                     width: double.infinity,
-                    // CachedImage handles placeholder and error widgets internally
-                    // You can customize them if needed, e.g., placeholder: const Icon(Icons.movie)
+                    fit: BoxFit.cover,
+                    borderRadius: 0,
                   ),
-                ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.only(left:8.w,bottom: 8.h),
+                      decoration: BoxDecoration(
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            movie.title,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16,color: whiteColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4.h),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8), // Spacing between image and text
-              Text(
-                movie.title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold), // Use theme for text style
-                maxLines: 2, // Limit title to 2 lines
-                overflow: TextOverflow.ellipsis, // Add ellipsis if text overflows
-              ),
-            ],
+            ),
           ),
         );
       },
     );
   }
 }
-

@@ -1,24 +1,24 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart'; // Changed to Dio for consistency with DioClient
+import 'package:dio/dio.dart';
 import 'package:movies_app/core/errors/failures.dart';
 import '../errors/exceptions.dart';
 
 class ErrorHandler {
   static Failure handleError(dynamic error) {
-    if (error is DioException) { // Changed to DioException
+    if (error is DioException) {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
           return const TimeoutFailure('Request timeout');
-        case DioExceptionType.badResponse: // Handle bad responses specifically
+        case DioExceptionType.badResponse:
           return _handleResponseError(error.response!);
         case DioExceptionType.cancel:
           return const ServerFailure('Request cancelled');
-        case DioExceptionType.connectionError: // For no internet connectivity
+        case DioExceptionType.connectionError:
           return const NetworkFailure('No internet connection');
-        case DioExceptionType.unknown: // Catch all other Dio errors
+        case DioExceptionType.unknown:
         default:
           return const ServerFailure('An unknown Dio error occurred');
       }
@@ -27,7 +27,6 @@ class ErrorHandler {
     } else if (error is FormatException) {
       return const ServerFailure('Unable to process the data');
     } else if (error is AppException) {
-      // Direct mapping for custom AppExceptions
       if (error is ServerException) return ServerFailure(error.message, error.statusCode);
       if (error is CacheException) return CacheFailure(error.message);
       if (error is NetworkException) return NetworkFailure(error.message);
@@ -78,74 +77,3 @@ class ErrorHandler {
   }
 }
 
-
-
-
-/*
-import 'dart:io';
-
-import 'package:dio/dio.dart';
-import 'package:movies_app/core/errors/failures.dart';
-
-import '../errors/exceptions.dart';
-
-class ErrorHandler {
-  static Failure handleError(dynamic error) {
-    if (error is DioError) {
-      switch (error.type) {
-        case DioErrorType.connectTimeout:
-        case DioErrorType.sendTimeout:
-        case DioErrorType.receiveTimeout:
-          return const TimeoutFailure('Request timeout');
-        case DioErrorType.response:
-          return _handleResponseError(error.response!);
-        case DioErrorType.cancel:
-          return const ServerFailure('Request cancelled');
-        case DioErrorType.other:
-          return const NetworkFailure('No internet connection');
-      }
-    } else if (error is SocketException) {
-      return const NetworkFailure('No internet connection');
-    } else if (error is FormatException) {
-      return const ServerFailure('Unable to process the data');
-    } else if (error is AppException) {
-      return ServerFailure(error.message, error.statusCode);
-    } else {
-      return const ServerFailure('Something went wrong');
-    }
-  }
-
-  static Failure _handleResponseError(Response response) {
-    switch (response.statusCode) {
-      case 400:
-        return BadRequestFailure(response.data['message'] ?? 'Bad request');
-      case 401:
-        return UnauthorizedFailure(response.data['message'] ?? 'Unauthorized');
-      case 403:
-        return UnauthorizedFailure(response.data['message'] ?? 'Forbidden');
-      case 404:
-        return NotFoundFailure(response.data['message'] ?? 'Not found');
-      case 500:
-        return ServerFailure(
-          response.data['message'] ?? 'Internal server error',
-          response.statusCode,
-        );
-      case 503:
-        return ServerFailure(
-          response.data['message'] ?? 'Service unavailable',
-          response.statusCode,
-        );
-      default:
-        return ServerFailure(
-          response.data['message'] ?? 'Something went wrong',
-          response.statusCode,
-        );
-    }
-  }
-
-  static String getErrorMessage(Failure failure) {
-    return failure.message;
-  }
-}
-
-*/

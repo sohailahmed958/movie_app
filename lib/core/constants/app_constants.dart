@@ -21,7 +21,6 @@ class AppConstants {
   static const double defaultPadding = 16.0;
   static const double defaultBorderRadius = 12.0;
 
-  // API timeout in seconds (used by DioClient)
   static const int connectTimeoutInSeconds = 30;
   static const int receiveTimeoutInSeconds = 30;
 }

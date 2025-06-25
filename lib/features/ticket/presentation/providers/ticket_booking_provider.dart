@@ -6,7 +6,6 @@ class SeatPosition {
 
   SeatPosition({required this.row, required this.col});
 
-  // Override equals and hashCode for proper comparison in lists/sets
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -24,7 +23,7 @@ class TicketProvider with ChangeNotifier {
   List<SeatPosition> _unavailableSeats = [];
   double _totalPrice = 0;
   bool _isLoading = false;
-  String? _errorMessage; // Added for error handling
+  String? _errorMessage;
 
   List<SeatPosition> get selectedSeats => _selectedSeats;
   List<SeatPosition> get unavailableSeats => _unavailableSeats;
@@ -32,16 +31,15 @@ class TicketProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Fetches unavailable seats (simulated API call)
+
   Future<void> fetchUnavailableSeats(int movieId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Simulate API call delay
-      await Future.delayed(const Duration(seconds: 1)); // Reduced delay
-      // Simulate some unavailable seats
+
+      await Future.delayed(const Duration(seconds: 1));
       _unavailableSeats = [
         SeatPosition(row: 0, col: 1),
         SeatPosition(row: 2, col: 3),
@@ -58,10 +56,9 @@ class TicketProvider with ChangeNotifier {
     }
   }
 
-  // Toggles seat selection
   void selectSeat(int row, int col, bool isVip) {
     final seat = SeatPosition(row: row, col: col);
-    if (_selectedSeats.contains(seat)) { // Use contains and remove for better readability
+    if (_selectedSeats.contains(seat)) {
       _selectedSeats.remove(seat);
     } else {
       _selectedSeats.add(seat);
@@ -70,37 +67,43 @@ class TicketProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Calculates total price based on selected seats and VIP status
+  void removeSeat(SeatPosition seat) {
+    _selectedSeats.remove(seat);
+    _recalculateTotalBasedOnCurrentSelection();
+    notifyListeners();
+  }
+
+  void _recalculateTotalBasedOnCurrentSelection() {
+    _totalPrice = _selectedSeats.fold(0, (sum, currentSeat) {
+      bool currentSeatIsVip = currentSeat.row >= 0 && currentSeat.row <= 1;
+      return sum + (currentSeatIsVip ? 150 : 50);
+    });
+  }
+
   void _calculateTotal(bool isVip) {
     _totalPrice = _selectedSeats.fold(0.0, (sum, seat) {
-      // Assign specific prices for VIP and regular seats
       return sum + (isVip ? 150.0 : 50.0);
     });
   }
 
-  // Clears all selected seats
   void clearSelection() {
     _selectedSeats = [];
     _totalPrice = 0;
     notifyListeners();
   }
 
-  // Simulates confirming the booking
   Future<bool> confirmBooking() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Simulate API call for booking confirmation
       await Future.delayed(const Duration(seconds: 2));
-      // In a real app, you would send the selected seats to your backend here
-      // If successful, clear selection
       clearSelection();
-      return true; // Booking successful
+      return true;
     } catch (error) {
       _errorMessage = 'Booking failed: $error';
-      return false; // Booking failed
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

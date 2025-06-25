@@ -1,238 +1,521 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:movies_app/core/constants/styles_extension.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../movie/data/models/movie_model.dart';
 import '../providers/ticket_booking_provider.dart';
-import '../../../../core/constants/app_constants.dart'; // Import for constants
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/date_utils.dart';
 
 class SeatSelectionWidget extends StatelessWidget {
   final Movie movie;
+  final DateTime selectedDate;
+  final String selectedTime;
+  final String selectedHallName;
 
-  const SeatSelectionWidget({super.key, required this.movie});
+  const SeatSelectionWidget({
+    super.key,
+    required this.selectedDate,
+    required this.movie,
+    required this.selectedTime,
+    required this.selectedHallName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TicketProvider>(
-      builder: (context, ticketProvider, child) {
-        // Check for loading or error state from provider
-        if (ticketProvider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (ticketProvider.errorMessage != null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              child: Text(
-                'Error: ${ticketProvider.errorMessage}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          );
-        }
-
-        return Column(
+    return Scaffold(
+      backgroundColor: lightGreyColor,
+      appBar: AppBar(
+        backgroundColor: whiteColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, size: 24.w),
+          color: Theme.of(context).iconTheme.color,
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
+            Text(movie.title, style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              "${AppDateUtils.formatDate(selectedDate, format: 'MMMM dd,yyyy')} | $selectedTime $selectedHallName",
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 12.sp,
+                color: skyBlueColor,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
+      body: Consumer<TicketProvider>(
+        builder: (context, ticketProvider, child) {
+          if (ticketProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (ticketProvider.errorMessage != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                child: Text(
+                  'Error: ${ticketProvider.errorMessage}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              SizedBox(height: 18.h),
+              // SCREEN Indicator
+              Image.asset(
+                'assets/icons/screen_img.png',
+              ), // Ensure this asset exists
+              Text(
                 'SCREEN',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: context.label8500.copyWith(color: greyColor),
               ),
-            ),
-            Container(
-              height: 10,
-              width: MediaQuery.of(context).size.width * 0.8, // Make screen width responsive
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(5),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Generate seat layout dynamically
-            ...List.generate(8, (row) {
-              // Row index from 0 to 7
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Row label (e.g., A, B, C...)
-                    SizedBox(
-                      width: 20,
-                      child: Text(
-                        String.fromCharCode(65 + row), // A, B, C, etc.
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+
+              SizedBox(height: 30.h),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppConstants.defaultPadding.w,
                     ),
-                    const SizedBox(width: 8),
-                    // Individual seats in a row
-                    ...List.generate(10, (col) {
-                      // Column index from 0 to 9
-                      final isVip = row < 2; // First two rows are VIP
-                      final seatPosition = SeatPosition(row: row, col: col);
-                      final isSelected = ticketProvider.selectedSeats.contains(seatPosition);
-                      final isUnavailable = ticketProvider.unavailableSeats.contains(seatPosition);
-
-                      Color seatColor;
-                      if (isUnavailable) {
-                        seatColor = Colors.grey; // Unavailable seats
-                      } else if (isSelected) {
-                        seatColor = Colors.blue; // Selected seats
-                      } else {
-                        seatColor = isVip ? Colors.orange : Colors.green; // VIP vs Regular
-                      }
-
-                      return GestureDetector(
-                        onTap: isUnavailable
-                            ? null // Cannot select unavailable seats
-                            : () => ticketProvider.selectSeat(row, col, isVip),
-                        child: Container(
-                          margin: const EdgeInsets.all(4),
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: seatColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.black54),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${col + 1}', // Seat number
-                            style: TextStyle(
-                              color: isSelected || isUnavailable ? Colors.white : Colors.black,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                    child: Row(
+                      children: [
+                        Column(
+                          children: List.generate(
+                            10,
+                            (rowIndex) => Column(
+                              children: [
+                                SizedBox(height: 7.h),
+                                Text(
+                                  '${rowIndex + 1}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.sp,
+                                    color: blackColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      );
-                    }),
+                        Column(
+                          children: List.generate(10, (rowIndex) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(width: 8.w),
+                                if (rowIndex == 0) ...[
+                                  _buildSeatBlock(
+                                    context,
+                                    10,
+                                    rowIndex,
+                                    0,
+                                    ticketProvider,
+                                  ),
+                                ] else if (rowIndex >= 1 && rowIndex <= 4) ...[
+                                  _buildSeatBlock(
+                                    context,
+                                    5,
+                                    rowIndex,
+                                    0,
+                                    ticketProvider,
+                                  ),
+                                  SizedBox(width: 26.w),
+                                  _buildSeatBlock(
+                                    context,
+                                    5,
+                                    rowIndex,
+                                    5,
+                                    ticketProvider,
+                                  ),
+                                  SizedBox(width: 26.w),
+                                  _buildSeatBlock(
+                                    context,
+                                    5,
+                                    rowIndex,
+                                    10,
+                                    ticketProvider,
+                                  ),
+                                ] else ...[
+                                  _buildSeatBlock(
+                                    context,
+                                    7,
+                                    rowIndex,
+                                    0,
+                                    ticketProvider,
+                                  ),
+                                  SizedBox(width: 26.w),
+                                  _buildSeatBlock(
+                                    context,
+                                    6,
+                                    rowIndex,
+                                    7,
+                                    ticketProvider,
+                                  ),
+                                  SizedBox(width: 26.w),
+                                  _buildSeatBlock(
+                                    context,
+                                    7,
+                                    rowIndex,
+                                    13,
+                                    ticketProvider,
+                                  ),
+                                ],
+                              ],
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.defaultPadding.w,
+                ),
+                child: Container(
+                  height: 10.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(5.r),
+                  ),
+                  alignment: Alignment.centerLeft,
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.defaultPadding.w,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    FloatingActionButton.small(
+                      heroTag: 'zoomOutFabUniqueTag',
+                      elevation: 0,
+                      onPressed: () {
+                        // Implement zoom out
+                      },
+                      backgroundColor: whiteColor,
+                      foregroundColor: blackColor,
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.remove),
+                    ),
+                    SizedBox(width: 10.w),
+                    FloatingActionButton.small(
+                      heroTag: 'zoomInFabUniqueTag', // Unique tag
+                      elevation: 0,
+                      onPressed: () {
+                        // Implement zoom in
+                      },
+                      backgroundColor: whiteColor,
+                      foregroundColor: blackColor,
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.add),
+                    ),
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 20),
-            // Legend for seat types - Now using Wrap
-            Padding(
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              child: Wrap( // Changed from Row to Wrap
-                spacing: 16.0, // Horizontal spacing between items
-                runSpacing: 8.0, // Vertical spacing if items wrap to next line
-                alignment: WrapAlignment.center, // Align wrapped items in the center
-                children: [
-                  _buildLegendItem(Colors.green, 'Available (Regular)'),
-                  _buildLegendItem(Colors.orange, 'Available (VIP)'),
-                  _buildLegendItem(Colors.blue, 'Selected'),
-                  _buildLegendItem(Colors.grey, 'Unavailable'),
-                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            // Display total price and booking button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total: \$${ticketProvider.totalPrice.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  ElevatedButton(
-                    onPressed: ticketProvider.selectedSeats.isEmpty
-                        ? null // Disable button if no seats selected
-                        : () => _showBookingConfirmation(context, ticketProvider),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
+              SizedBox(height: 10.h),
+              const Divider(indent: 20, endIndent: 20),
+              SizedBox(height: 10.h),
+              // Legend
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32.w),
+                child: Row(
+                  children: [
+                    _buildLegendItem(
+                      context,
+                      'assets/icons/selected.png',
+                      'Selected',
+                    ),
+                    Spacer(),
+                    _buildLegendItem(
+                      context,
+                      'assets/icons/not_avail.png',
+                      'Not available',
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32.w),
+                child: Row(
+                  children: [
+                    _buildLegendItem(
+                      context,
+                      'assets/icons/vip.png',
+                      'VIP (150\$)',
+                    ),
+                    Spacer(),
+                    _buildLegendItem(
+                      context,
+                      'assets/icons/regular.png',
+                      'Regular (50\$)',
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20.h),
+              // Selected Seats Display
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.defaultPadding.w,
+                ),
+                child: Row(
+                  children: [
+                    if (ticketProvider.selectedSeats.isNotEmpty)
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Wrap(
+                              spacing: 8.w,
+                              runSpacing: 4.h,
+                              children:
+                                  ticketProvider.selectedSeats.map((s) {
+                                    return Chip(
+                                      backgroundColor: midGreyColor,
+                                      label: Text(
+                                        '${String.fromCharCode(65 + s.row)}${s.col + 1}',
+                                        style: context.label14500.copyWith(
+                                          color: blackColor,
+                                        ),
+                                      ),
+                                      deleteIcon: Icon(
+                                        Icons.close,
+                                        size: 18.w,
+                                        color: Colors.black54,
+                                      ),
+                                      onDeleted: () {
+                                        ticketProvider.removeSeat(s);
+                                      },
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          10.r,
+                                        ),
+                                      ),
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: AppConstants.defaultPadding.h),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.defaultPadding.w,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: midGreyColor,
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Total Price', style: context.label10400),
+                          Text(
+                            '\$${ticketProvider.totalPrice.toStringAsFixed(2)}',
+                            style: context.label16600,
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Text(
-                      'Proceed to Pay',
-                      style: TextStyle(fontSize: 16),
+                    ElevatedButton(
+                      onPressed:
+                          ticketProvider.selectedSeats.isEmpty
+                              ? null
+                              : () => _showBookingConfirmation(
+                                context,
+                                ticketProvider,
+                              ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: skyBlueColor,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40.w,
+                          vertical: 15.h,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Proceed to pay',
+                        style: TextStyle(fontSize: 16.sp),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppConstants.defaultPadding),
-          ],
-        );
-      },
+              SizedBox(height: AppConstants.defaultPadding.h),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  // Helper method to build legend items
-  Widget _buildLegendItem(Color color, String text) {
-    // Removed Expanded here, as Wrap will handle overall spacing/wrapping
+  Widget _buildSeatBlock(
+    BuildContext context,
+    int count,
+    int rowIndex,
+    int startCol,
+    TicketProvider ticketProvider,
+  ) {
     return Row(
-      mainAxisSize: MainAxisSize.min, // Ensure inner row takes minimum space
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(count, (index) {
+        final colIndex = startCol + index;
+
+        Color baseSeatColor;
+        bool isVipType = false;
+        if (rowIndex >= 0 && rowIndex <= 0) {
+          baseSeatColor = greyColor;
+          isVipType = true;
+        } else if (rowIndex >= 1 && rowIndex <= 4) {
+          baseSeatColor = skyBlueColor;
+        } else {
+          baseSeatColor = blueColor;
+        }
+
+        final seatPosition = SeatPosition(row: rowIndex, col: colIndex);
+        final isSelected = ticketProvider.selectedSeats.contains(seatPosition);
+        final isUnavailable = ticketProvider.unavailableSeats.contains(
+          seatPosition,
+        );
+
+        Color finalSeatColor;
+        if (isUnavailable) {
+          finalSeatColor = pinkColor;
+        } else if (isSelected) {
+          finalSeatColor = yellowColor;
+        } else {
+          finalSeatColor = baseSeatColor;
+        }
+
+        return GestureDetector(
+          onTap:
+              isUnavailable
+                  ? null
+                  : () =>
+                      ticketProvider.selectSeat(rowIndex, colIndex, isVipType),
+          child: Container(
+            margin: EdgeInsets.all(3.w),
+            width: 20.w,
+            height: 20.w,
+            decoration: BoxDecoration(
+              color: finalSeatColor,
+              borderRadius: BorderRadius.circular(5.r),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildLegendItem(BuildContext context, String img, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible( // Keep Flexible for text within the item to allow shrinking/ellipsis
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        Image.asset(img),
+        SizedBox(width: 8.w),
+        Text(text, style: context.label12500.copyWith(color: greyColor)),
       ],
     );
   }
 
-  // Shows a confirmation dialog before proceeding to pay
-  void _showBookingConfirmation(BuildContext context, TicketProvider ticketProvider) {
+  void _showBookingConfirmation(
+    BuildContext context,
+    TicketProvider ticketProvider,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Booking'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Movie: ${movie.title}'),
-            Text(
-              'Seats: ${ticketProvider.selectedSeats.map((s) => '${String.fromCharCode(65 + s.row)}${s.col + 1}').join(', ')}',
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirm Booking'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Movie: ${movie.title}',
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+                Text(
+                  'Seats: ${ticketProvider.selectedSeats.map((s) => '${String.fromCharCode(65 + s.row)}${s.col + 1}').join(', ')}',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+                Text(
+                  'Total: \$${ticketProvider.totalPrice.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            Text('Total: \$${ticketProvider.totalPrice.toStringAsFixed(2)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  bool success = await ticketProvider.confirmBooking();
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Booking confirmed!')),
+                    );
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ticketProvider.errorMessage ?? 'Booking failed.',
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close the dialog first
-              bool success = await ticketProvider.confirmBooking();
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Booking confirmed!')),
-                );
-                // Optionally navigate back to movie list or show booking success page
-                Navigator.pop(context); // Go back from TicketBookingPage
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(ticketProvider.errorMessage ?? 'Booking failed.')),
-                );
-              }
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
     );
   }
 }
-

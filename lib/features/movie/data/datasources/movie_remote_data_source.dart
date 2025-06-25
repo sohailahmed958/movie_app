@@ -1,5 +1,3 @@
-// features/movie/data/datasources/movie_remote_data_source.dart
-
 
 import 'package:movies_app/core/network/dio_client.dart'; // Use DioClient
 import 'package:movies_app/features/movie/data/models/movie_model.dart';
@@ -12,17 +10,15 @@ abstract class MovieRemoteDataSource {
 }
 
 class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
-  final DioClient dioClient; // Dependency changed to DioClient
+  final DioClient dioClient;
 
-  MovieRemoteDataSourceImpl({required this.dioClient}); // Constructor updated
+  MovieRemoteDataSourceImpl({required this.dioClient});
 
   @override
   Future<UpcomingMoviesResponse> getUpcomingMovies() async {
     final response = await dioClient.get(
       '/movie/upcoming',
-      // API key is now handled by DioClient's interceptor, no need to pass it here
     );
-    // Directly parse the response data into UpcomingMoviesResponse
     return UpcomingMoviesResponse.fromJson(response.data);
   }
 
@@ -30,7 +26,6 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
   Future<MovieDetails> getMovieDetail(int id) async {
     final response = await dioClient.get(
       '/movie/$id',
-      // API key handled by DioClient
     );
     return MovieDetails.fromJson(response.data);
   }
@@ -39,8 +34,7 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
   Future<UpcomingMoviesResponse> searchMovies(String query) async {
     final response = await dioClient.get(
       '/search/movie',
-      queryParameters: {'query': query}, // Pass the search query
-      // API key handled by DioClient
+      queryParameters: {'query': query},
     );
     return UpcomingMoviesResponse.fromJson(response.data);
   }

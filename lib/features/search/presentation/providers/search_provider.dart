@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dartz/dartz.dart'; // Import dartz
 import '../../../movie/data/models/movie_model.dart';
 import '../../domain/usecases/search_movies.dart';
-import '../../../../core/errors/failures.dart'; // Import Failure classes
 
 class SearchProvider with ChangeNotifier {
   final SearchMovies searchMovies;
@@ -17,8 +15,16 @@ class SearchProvider with ChangeNotifier {
   bool get isSearching => _isSearching;
   String? get searchError => _searchError;
 
+  bool _hasSearched = false;
+  bool get hasSearched => _hasSearched;
+
+  void setSearched(bool value) {
+    _hasSearched = value;
+    notifyListeners();
+  }
+
   Future<void> search(String query) async {
-    // If query is empty, clear results and reset state
+
     if (query.isEmpty) {
       _searchResults = [];
       _searchError = null;
@@ -27,19 +33,18 @@ class SearchProvider with ChangeNotifier {
     }
 
     _isSearching = true;
-    _searchError = null; // Clear previous errors
+    _searchError = null;
     notifyListeners();
 
-    final result = await searchMovies(query); // Call the search use case
+    final result = await searchMovies(query);
 
-    // Handle the Either result: success (Right) or failure (Left)
     result.fold(
           (failure) {
-        _searchError = failure.message; // Set error message
-        _searchResults = []; // Clear results on error
+        _searchError = failure.message;
+        _searchResults = [];
       },
           (movies) {
-        _searchResults = movies; // Update search results on success
+        _searchResults = movies;
       },
     );
     _isSearching = false;

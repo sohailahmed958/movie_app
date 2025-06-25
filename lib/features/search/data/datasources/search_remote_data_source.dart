@@ -1,5 +1,5 @@
 import 'package:movies_app/core/network/dio_client.dart';
-import 'package:movies_app/features/movie/data/models/movie_model.dart'; // Re-use MovieModel
+import 'package:movies_app/features/movie/data/models/movie_model.dart';
 
 abstract class SearchRemoteDataSource {
   Future<UpcomingMoviesResponse> searchMovies(String query);

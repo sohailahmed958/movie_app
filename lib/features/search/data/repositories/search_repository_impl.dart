@@ -19,7 +19,7 @@ class SearchRepositoryImpl implements SearchRepository {
         final response = await remoteDataSource.searchMovies(query);
         return Right(response.results);
       } on AppException catch (e) {
-        // Map exceptions to failures
+
         if (e is ServerException) return Left(ServerFailure(e.message, e.statusCode));
         if (e is NotFoundException) return Left(NotFoundFailure(e.message, e.statusCode));
         if (e is UnauthorizedException) return Left(UnauthorizedFailure(e.message, e.statusCode));
